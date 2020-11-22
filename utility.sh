@@ -1,18 +1,18 @@
 #!/bin/sh
 #
 # i-MSCP ConfigScript Debian
-# Version: 0.5.0
+# Version: 0.5.4
 # License: GPLv2
 # Author : i-MSCP Team, DragonZX
 # Credits: i-MSCP Development Team
 #----------------------------------
 # Varibles and functions
 
-read -p "Which version of i-MSCP do you want to install (i.e. 1.3.0)?: " version
+read -p "Which version of i-MSCP do you want to install (i.e. 1.5.3-2018120800)?: " version
 case $version in 
-'1.2.'*|'1.3.'*|'1.4.'*|'2.0.'*) version=$version;;
-'trunk') read -p 'choose a version of trunk 1.3/1.4: ' trunkver ;;
-*) version='1.3.0';;
+'1.2.'*|'1.3.'*|'1.4.'*|'1.5.'*|'2.0.'*) version=$version;;
+'trunk') read -p 'choose a version of trunk 1.5/1.5: ' trunkver ;;
+*) version='1.5.3-2018120800';;
 esac
 
 clear
@@ -32,8 +32,8 @@ read -p "Enter your choice [1-7] " choice
 # Installation of a version
 if [ $choice -eq 1 ] ; then
     #==== Start i-MSCP installer ====
-	aptitude update && aptitude -y safe-upgrade
-    aptitude -y install bzip2 wget tar unzip ca-certificates xz-utils
+	apt update && apt -y dist-upgrade
+    apt -y install bzip2 wget tar unzip ca-certificates xz-utils
 	clear
 	if [ -f /usr/local/src/imscp/imscp-$version/imscp-autoinstall || /usr/local/src/imscp/imscp-$trunkver.x/imscp-autoinstall ]; then
 		echo "Installation file exists"
@@ -60,8 +60,8 @@ elif [ $choice -eq 2 ] ; then
 	rm -fR /usr/local/src/imscp/
     mkdir -p /usr/local/src/imscp
     cd /usr/local/src/imscp
-    aptitude update && aptitude -y safe-upgrade
-    aptitude -y install bzip2 wget tar ca-certificates xz-utils
+    apt update && apt -y dist-upgrade
+    apt -y install bzip2 wget tar ca-certificates xz-utils
 		if [ $version = "trunk" ]; then
 		echo '#### Your trunk version is '$trunkver'.x ###';
 		wget https://github.com/i-MSCP/imscp/archive/$trunkver.x.zip
@@ -97,19 +97,31 @@ elif [ $choice -eq 3 ] ; then
     #==== Start i-MSCP installer ====
     perl imscp-autoinstall -d "$@"
     exit
-	# Uninsall i-MSCP
+		# Uninstall i-MSCP
 elif [ $choice -eq 4 ] ; then
 	echo '#### UNINSTALLING an i-MSCP ####'
-    cd /var/www/imscp/engine/setup
-    perl imscp-uninstall
-    exit
+	read -p "Continue (y/n)?" choice
+	case "$choice" in 
+	y|Y ) 	cd /var/www/imscp/engine/setup
+			perl imscp-uninstall
+			exit;;
+	n|N ) echo "no";;
+	* ) echo "invalid";;
+	esac
 elif [ $choice -eq 5 ] ; then
 	echo '#### Backuping an i-MSCP ####'
-	read -p 'Please enter the MySQL root password: ' mypass
-	apt-get -y install bzip2 xz-utils
+	read -p 'Anonymus root login [Y/n]' anonsql
+	apt -y install bzip2 xz-utils
 	mkdir /tmp/imscpbkp
 	cd /tmp/imscpbkp
-	mysqldump -u root --password=$mypass --all-databases > imscp.sql
+	case "$anonsql" in
+	n|N ) 	read -p 'Please enter the superuser login [root]: ' myuser
+			if [ -z $myuser ]; then myuser="root"
+			fi
+			read -p 'Please enter the MySQL superuser password: ' mypass
+			mysqldump -u $myuser --password=$mypass --all-databases > imscp.sql;;
+	* ) mysqldump --all-databases > imscp.sql;;
+	esac
 	tar cvfJ www.txz /var/www/virtual
 	tar cvfJ mail.txz /var/mail/virtual
 	tar cvfJ config.txz /etc/imscp 
@@ -122,8 +134,11 @@ elif [ $choice -eq 5 ] ; then
 	exit
 elif [ $choice -eq 6 ] ; then
 	echo '#### Restoring an i-MSCP ####'
+	read -p 'Please enter the superuser login [root]: ' myuser
+	if [ -z $myuser ]; then myuser="root"
+	fi
 	read -p 'Please enter the MySQL root password: ' mypass
-	apt-get -y install bzip2 xz-utils
+	apt -y install bzip2 xz-utils
 	mkdir /tmp/imscpbkp
 	cp /root/imscp.bkp /tmp/imscp.bkp
 	cd /tmp
@@ -132,7 +147,7 @@ elif [ $choice -eq 6 ] ; then
 	tar xvfJ www.txz -C /
 	tar xvfJ mail.txz -C /
 	tar xvfJ config.txz -C / 
-	mysql -u root --password=$mypass < imscp.sql
+	mysql -u $myuser --password=$mypass < imscp.sql
 	rm -f /root/imscp.bkp
 	cd /root
 	clear
