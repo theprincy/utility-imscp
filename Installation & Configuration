@@ -1,0 +1,374 @@
+
+i-MSCP Control Panel Installation & Configuration Tips & Tricks for Debian 9
+Plugin Installation & Setup Tips
+
+Before attempting to install & activate plugins, it is highly recommended to install, if not installed at the beginning of your server setup, ALL packages required by i-MSCP Plugins IMHO ...
+I tried to break it down in a very detailed, simplistic manner below to have a quick, easy & hopefully pain free install & configuration of your system.
+___________________________________________________________________________________________________________________________________
+Required Package Install Information
+Open a SSH Terminal Session with an account that has SU privileges & execute the following commands for the plugins you wish to use
+
+ClamAV
+
+`sudo apt-get install clamav clamav-base clamav-daemon clamav-freshclam`
+
+`clamav-milter`
+
+`sudo service clamav-freshclam stop`
+
+`sudo freshclam`
+
+`sudo service clamav-freshclam start`
+
+`sudo service clamav-daemon restart`
+
+
+Cron Jobs
+
+`sudo apt-get install msmtp`
+
+
+Instant SSH
+
+`sudo apt-get install flex libpam-chroot python-magic strace`
+
+
+LetsEncrypt
+
+`sudo apt-get install certbot python-certbot-apache`
+
+
+Mailgraph
+
+`sudo apt-get --no-install-recommends install mailgraph`
+
+
+Mailman
+
+`sudo apt-get install mailman`
+
+`newlist mailman`
+
+`service mailman restart`
+
+
+Monitorix
+
+`apt-get install mailgraph librrds-perl`
+
+`apt-get install rrdtool libmime-lite-perl libhttp-server-simple-perl libhttp-server-simple-perl libconfig-general-perl librrds-perl`
+
+`cd /usr/local/src`
+
+`wget https://www.monitorix.org/monitorix_version-izzy1_all.deb`
+
+`dpkg -i monitorix_version-izzy1_all.deb`
+
+
+OpenDKIM
+
+`sudo apt-get install opendkim opendkim-tools`
+
+
+PhpSwitcher
+
+All packages for this plugin should already be installed. Detailed instructions to install & configure multiple PHP Versions & a couple modules shown below.
+
+
+Policy SPF
+
+`sudo apt-get install postfix-policyd-spf-perl`
+
+
+PolicyD Weight
+
+`sudo apt-get install policyd-weight`
+
+
+Postgrey
+
+`sudo apt-get install postgrey`
+
+
+Spamassassin
+
+`sudo apt-get install spamassassin spamass-milter libmail-dkim-perl libnet-ident-perl libencode-detect-perl pyzor razor`
+
+`/etc/init.d/spamass-milter stop`
+
+`/etc/init.d/spamassassin stop`
+
+`/etc/init.d/spamass-milter start`
+
+`/etc/init.d/spamassassin start`
+
+
+Now you should be able to install & activate plugins from the i-MSCP Panel Plugin Management Page without any errors or issues.
+
+
+___________________________________________________________________________________________________________________________________
+Detailed PHP Switcher Plugin Setup & Configuration
+Add Additional PHP Versions
+This is the best method as it downloads, installs & registers selected PHP Version automatically
+
+PHP 7.2
+
+`sudo perl /var/www/imscp/gui/plugins/PhpSwitcher/PhpCompiler/php_compiler.pl --register 7.2`
+
+
+PHP 7.3
+
+`sudo perl /var/www/imscp/gui/plugins/PhpSwitcher/PhpCompiler/php_compiler.pl --register 7.3`
+
+
+PHP 7.4
+
+`sudo perl /var/www/imscp/gui/plugins/PhpSwitcher/PhpCompiler/php_compiler.pl --register 7.4`
+
+
+Multiple PHP Versions should be available to choose from within i-MSCP PHP Switcher Page.
+
+
+Installing PHP Modules
+
+
+Install Imagick
+
+`sudo apt-get update`
+
+`sudo apt-get -y install libmagickwand-dev imagemagick`
+
+
+PHP 7.2
+
+`/opt/phpswitcher/YYYYMMDD/php7.2/bin/pecl install imagick`
+
+`echo 'extension = imagick.so' > /opt/phpswitcher/YYYYMMDD/php7.2/etc/php/conf.d/imagick.ini`
+
+
+PHP 7.3
+
+`/opt/phpswitcher/YYYYMMDD/php7.3/bin/pecl install imagick`
+
+`echo 'extension = imagick.so' > /opt/phpswitcher/YYYYMMDD/php7.3/etc/php/conf.d/imagick.ini`
+
+
+PHP 7.4
+
+`/opt/phpswitcher/YYYYMMDD/php7.4/bin/pecl install imagick`
+
+`echo 'extension = imagick.so' > /opt/phpswitcher/YYYYMMDD/php7.4/etc/php/conf.d/imagick.ini`
+
+
+Install APCu
+
+`cd /opt/phpswitcher/YYYYMMDD/php7.X/bin`
+
+`./pecl install channel://pecl.php.net/apcu-5.1.18`
+
+
+PHP 7.2
+
+`PHP_EXT_DIR=$(/opt/phpswitcher/YYYYMMDD/php7.2/bin/php-config --extension-dir)`
+
+`echo "extension = $PHP_EXT_DIR/apcu.so" > /opt/phpswitcher/YYYYMMDD/php7.2/etc/php/conf.d/02_apcu.ini`
+
+
+PHP 7.3
+
+`PHP_EXT_DIR=$(/opt/phpswitcher/YYYYMMDD/php7.3/bin/php-config --extension-dir)`
+
+`echo "extension = $PHP_EXT_DIR/apcu.so" > /opt/phpswitcher/YYYYMMDD/php7.3/etc/php/conf.d/02_apcu.ini`
+
+
+PHP 7.4
+
+`PHP_EXT_DIR=$(/opt/phpswitcher/YYYYMMDD/php7.4/bin/php-config --extension-dir)`
+
+`echo "extension = $PHP_EXT_DIR/apcu.so" > /opt/phpswitcher/YYYYMMDD/php7.4/etc/php/conf.d/02_apcu.ini`
+
+
+VERY IMPORTANT Tip!!!
+
+If you are using PHP Switcher & Instant SSH Plugin & have SSH enabled for Customers, all users SHOULD do the following:
+
+
+`touch ~/.profile`
+
+`nano ~/.profile`
+
+`export PATH=/opt/phpswitcher/YYYYMMDD/phpX.X/bin:$PATH`
+
+`source ~/.profile`
+
+`php -v` Not Necessary, but will verify your changes have taken effect
+
+In order for your SSH terminal sessions & domains PHP Version to match each other, this will make that happen and is a persistent solution.
+
+
+___________________________________________________________________________________________________________________________________
+
+
+i-MSCP Configuration Information
+
+
+Usage: perl imscp-autoinstall [OPTION]...
+
+
+Options 	Expanded Options 	Process/Task Description
+-b, 	--build-only 	Process build steps only
+-f, 	--force-reinstall 	Force re-installation of distro packages
+-s, 	--skip-distro-packages 	Do not install/update distro packages
+-a 	--skip-package-update 	Skip i-MSCP packages update
+-c 	--clean-package-cache 	Cleanup i-MSCP package cache
+-d, 	--debug 	Force debug mode
+-h,-? 	--help 	Show this help
+-l, 	--listener 	Path to listener file
+-n, 	--noprompt 	Switch to non-interactive mode
+-p, 	--preseed 	Path to precede file
+-r, 	--reconfigure [item] 	Type help for list of allowed items
+-v 	--verbose 	Enable verbose mode
+-x, 	--fix-permissions 	Fix permissions recursively
+
+
+Reconfigure option usage
+
+Without any argument, this option allows to reconfigure all items. You can reconfigure a specific item by passing its name as argument.
+
+
+Available items are:
+
+admin | all | antirootkits | backup | filemanager | ftpd | hostnames | httpd | mailfilters | mta
+
+named | panel | panel_hostname | panel_ports | panel_ssl | php | po | primary_ip | servers
+
+services_ssl | sql | sqlmanager | ssl | system_hostname | timezone | webmails | webstats
+
+
+Listener file location & loading information
+
+
+Listener files are provided with i-MSCP download
+
+Within the i-MSCP release you downloaded to install i-MSCP, the listeners are in 'configs\debian\listeners.d' folder.
+
+
+Adding/Creating listener files
+
+`cd /etc/imscp/listeners.d` Listener file location
+
+
+Create listener file
+
+`nano listener_file_name.pl` Edit listener file to your needs, save & exit.
+
+
+Load Listener file to implement changes
+
+`perl /var/www/imscp/engine/setup/imscp-reconfigure -danv`
+
+
+___________________________________________________________________________________________________________________________________
+
+
+Bonus Material
+
+
+Good to know Information
+
+
+How to Manually Disable Plugins using DB Server in a terminal
+
+
+In case you have issues with plugin management within i-MSCP Panel Plugin Management Page for some reason, or if you are like me, sometimes this old man forgets to disable 'CronJobs' before running imscp-reconfigure & the script fails making i-MSCP Panel inaccessible to plugin management within the Panel. The following will allow you to disable plugins from a terminal. Knowing this little tidbit of information will save you lots of time & all of your sanity.
+
+
+`mysql -u root -p` Enter root sql password when prompted
+
+
+Change to imscp database - This is IMPORTANT
+
+`use imscp;`
+
+
+Manually disable plugin
+
+`UPDATE plugin SET plugin_status = 'disabled' WHERE plugin_name = 'PluginName';` Replace 'PluginName' with the plugin name you need to disable. It is case sensitive so use the same case & spacing for the plugin name as it is displayed on the Plugin Management Page.
+
+
+Set Expiration & deletion of messages in Trash & Junk folders
+
+
+In i-MSCP Panel logged in as admin, under System Tools/Cron Jobs, create the following cronjobs set for once daily. This example will affect ALL users.
+
+
+`doveadm expunge -A mailbox INBOX.Trash savedbefore 30d`
+
+`doveadm expunge -A mailbox INBOX.Junk savedbefore 7d`
+
+
+More Infomation at Dovecot Wiki
+
+
+EMail Server Cert Check
+
+`openssl s_client -showcerts -connect mail.yourdomain.com:993 -servername mail.yourdomain.com`
+
+`openssl s_client -starttls smtp -showcerts -connect mail.yourdomain.com:25 -servername mail.yourdomain.com`
+
+___________________________________________________________________________________________________________________________________
+
+
+More to come as I remember stuff or break something & learn something new in the process of fixing my server
+
+If you have any information to add to this little tutorial, I would surely appreciate it.
+
+I thank you all & have a great day ... :cool:
+___________________________________________________________________________________________________________________________________
+
+System Details
+
+Debian GNU/Linux 9 (Stretch)
+
+PHP Ver: 7.1.33 (Default)
+
+MYSQL Ver: 5.7.29
+
+FPM/FastCGI
+
+ProFTPD Version 1.3.5b
+
+i-MSCP 1.5.3 | Build: 2018120800 | Codename: Ennio Morricone
+
+
+Plugins Installed & Active
+
+ClamAV - Ver. 1.3.0
+
+CronJobs - Ver. 1.4.1
+
+InstantSSH - Ver. 5.0.1
+
+LetsEncrypt - Ver. 3.5.0
+
+Mailgraph - Ver. 1.1.1
+
+Mailman - Ver. 2.0.4
+
+Monitorix - Ver. 1.2.2
+
+OpenDKIM - Ver. 2.0.0
+
+PhpSwitcher - Ver. 5.0.5 (Compiled versions installed: php7.2, php7.3, php7.4)
+
+PolicydSPF - Ver. 1.2.0
+
+PolicydWeight - Ver. 1.3.0
+
+Postgrey - Ver. 1.3.0
+
+Postscreen - Ver. 1.2.0
+
+RoundcubePlugins - Ver. 2.0.2
+
+SpamAssassin - Ver. 2.0.1
